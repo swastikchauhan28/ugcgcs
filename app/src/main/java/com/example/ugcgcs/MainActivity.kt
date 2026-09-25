@@ -24,9 +24,13 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import com.example.ugcgcs.navigation.GcsDestination
-import com.example.ugcgcs.presentation.components.PhasePlaceholder
 import com.example.ugcgcs.presentation.dashboard.DashboardScreen
+import com.example.ugcgcs.presentation.mission.MissionScreen
+import com.example.ugcgcs.presentation.parameters.ParametersScreen
+import com.example.ugcgcs.presentation.settings.SettingsScreen
+import com.example.ugcgcs.presentation.telemetry.TelemetryScreen
 import com.example.ugcgcs.presentation.theme.UgcGcsTheme
+import com.example.ugcgcs.presentation.vehicle.VehicleScreen
 import dagger.hilt.android.AndroidEntryPoint
 
 @AndroidEntryPoint
@@ -51,11 +55,11 @@ private fun GcsApp() {
             modifier = Modifier.weight(1f)
         ) {
             composable(GcsDestination.DASHBOARD.route) { DashboardScreen() }
-            composable(GcsDestination.MISSION.route) { PhasePlaceholder("Mission planner", "Phase 5") }
-            composable(GcsDestination.VEHICLE.route) { PhasePlaceholder("Vehicle control", "Phase 4") }
-            composable(GcsDestination.TELEMETRY.route) { PhasePlaceholder("Telemetry", "Phase 7") }
-            composable(GcsDestination.PARAMETERS.route) { PhasePlaceholder("Parameters", "Phase 8") }
-            composable(GcsDestination.SETTINGS.route) { PhasePlaceholder("Settings", "Future phase") }
+            composable(GcsDestination.MISSION.route) { MissionScreen() }
+            composable(GcsDestination.VEHICLE.route) { VehicleScreen() }
+            composable(GcsDestination.TELEMETRY.route) { TelemetryScreen() }
+            composable(GcsDestination.PARAMETERS.route) { ParametersScreen() }
+            composable(GcsDestination.SETTINGS.route) { SettingsScreen() }
         }
         NavigationBar(containerColor = Color(0xFF101A22), modifier = Modifier.fillMaxWidth()) {
             destinations.forEach { destination ->

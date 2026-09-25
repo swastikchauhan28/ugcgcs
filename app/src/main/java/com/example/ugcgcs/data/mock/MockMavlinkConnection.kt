@@ -21,7 +21,9 @@ import kotlin.math.atan2
 import kotlin.math.sin
 
 @Singleton
-class MockMavlinkConnection @Inject constructor() : MavlinkConnection {
+class MockMavlinkConnection @Inject constructor(
+    private val mockStore: MockGcsStore
+) : MavlinkConnection {
     private val _vehicleState = MutableStateFlow(VehicleState())
     override val vehicleState: StateFlow<VehicleState> = _vehicleState.asStateFlow()
     private var simulationJob: Job? = null
@@ -47,6 +49,7 @@ class MockMavlinkConnection @Inject constructor() : MavlinkConnection {
             batteryPercentage = batteryRemaining.toInt(),
             transportLabel = "Mock simulation"
         )
+        mockStore.record("HEARTBEAT", "base_mode: HOLD, vehicle: ROVER", _vehicleState.value)
         startSimulation()
     }
 
@@ -59,6 +62,7 @@ class MockMavlinkConnection @Inject constructor() : MavlinkConnection {
             speed = 0.0,
             flightMode = VehicleMode.HOLD
         )
+        mockStore.record("STATUSTEXT", "Mock vehicle disconnected", _vehicleState.value)
     }
 
     override suspend fun sendCommand(command: VehicleCommand) {
@@ -76,10 +80,18 @@ class MockMavlinkConnection @Inject constructor() : MavlinkConnection {
             flightMode = mode,
             missionState = if (mode == VehicleMode.AUTO) MissionState.RUNNING else _vehicleState.value.missionState
         )
+        mockStore.record("COMMAND_ACK", "SET_MODE accepted: ${mode.name}", _vehicleState.value)
     }
 
-    override suspend fun arm() { _vehicleState.value = _vehicleState.value.copy(armed = true) }
-    override suspend fun disarm() { _vehicleState.value = _vehicleState.value.copy(armed = false, speed = 0.0) }
+    override suspend fun arm() {
+        _vehicleState.value = _vehicleState.value.copy(armed = true)
+        mockStore.record("COMMAND_ACK", "MAV_CMD_COMPONENT_ARM_DISARM: armed", _vehicleState.value)
+    }
+
+    override suspend fun disarm() {
+        _vehicleState.value = _vehicleState.value.copy(armed = false, speed = 0.0)
+        mockStore.record("COMMAND_ACK", "MAV_CMD_COMPONENT_ARM_DISARM: disarmed", _vehicleState.value)
+    }
 
     override suspend fun sendVelocityCommand(metersPerSecond: Double, headingDegrees: Double) {
         _vehicleState.value = _vehicleState.value.copy(
@@ -115,6 +127,7 @@ class MockMavlinkConnection @Inject constructor() : MavlinkConnection {
                     gpsHdop = 0.75 + ((System.currentTimeMillis() / 3_000) % 4) * 0.03,
                     lastHeartbeatTime = System.currentTimeMillis()
                 )
+                mockStore.record("GLOBAL_POSITION_INT", "lat: ${(_vehicleState.value.latitude * 1e7).toLong()}  lon: ${(_vehicleState.value.longitude * 1e7).toLong()}  hdg: ${(_vehicleState.value.heading * 100).toInt()}", _vehicleState.value)
             }
         }
     }
