@@ -120,11 +120,11 @@ class MockMavlinkConnection @Inject constructor() : MavlinkConnection {
     }
 
     private fun moveTowardsNextWaypoint(current: VehicleState): VehicleState {
-        val target = route[(routeIndex + 1) % route.size()]
+        val target = route[(routeIndex + 1) % route.size]
         val latDelta = target.first - current.latitude
         val lonDelta = target.second - current.longitude
         val distance = kotlin.math.hypot(latDelta, lonDelta)
-        if (distance < 0.00005) routeIndex = (routeIndex + 1) % route.size()
+        if (distance < 0.00005) routeIndex = (routeIndex + 1) % route.size
         val heading = Math.toDegrees(atan2(lonDelta, latDelta)).mod(360.0)
         val step = 0.00004
         val scale = (step / distance).coerceAtMost(1.0)
