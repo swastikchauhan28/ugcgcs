@@ -29,6 +29,7 @@ import androidx.compose.runtime.remember
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.platform.LocalConfiguration
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.Path
@@ -83,10 +84,11 @@ private fun DashboardContent(
     onStop: () -> Unit,
     onSetMode: (VehicleMode) -> Unit
 ) {
+    val compactControls = LocalConfiguration.current.screenHeightDp < 500
     Column(Modifier.fillMaxSize().background(Color(0xFF0A1015))) {
         StatusStrip(state, onConnect, onDisconnect)
         OperationalMap(state, Modifier.weight(1f))
-        VehicleControls(state, feedback, onArm, onDisarm, onStop, onSetMode)
+        VehicleControls(state, feedback, onArm, onDisarm, onStop, onSetMode, compactControls)
         HorizontalDivider(color = Grid)
         Row(Modifier.fillMaxWidth()) {
             TelemetryMetric("GPS", "${state.gpsFix.label} / HDOP ${format(state.gpsHdop)}", Modifier.weight(1.25f))
@@ -226,11 +228,12 @@ private fun VehicleControls(
     onArm: () -> Unit,
     onDisarm: () -> Unit,
     onStop: () -> Unit,
-    onSetMode: (VehicleMode) -> Unit
+    onSetMode: (VehicleMode) -> Unit,
+    compact: Boolean
 ) {
     var showArmConfirmation by remember { mutableStateOf(false) }
     val enabled = state.connectionState == ConnectionState.CONNECTED
-    Column(Modifier.fillMaxWidth().background(Panel).padding(horizontal = 12.dp, vertical = 10.dp)) {
+    Column(Modifier.fillMaxWidth().background(Panel).padding(horizontal = 12.dp, vertical = if (compact) 6.dp else 10.dp)) {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Text("VEHICLE CONTROL", color = Muted, fontSize = 10.sp, fontWeight = FontWeight.Bold)
             Spacer(Modifier.width(12.dp))
@@ -259,15 +262,25 @@ private fun VehicleControls(
                 colors = ButtonDefaults.buttonColors(containerColor = Red, contentColor = Color.Black)
             ) { Text("STOP / HOLD", fontWeight = FontWeight.Bold, fontSize = 11.sp) }
         }
-        Row(Modifier.fillMaxWidth().padding(top = 7.dp), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
-            listOf(VehicleMode.HOLD, VehicleMode.GUIDED, VehicleMode.AUTO, VehicleMode.RTL).forEach { mode ->
-                OutlinedButton(
-                    onClick = { onSetMode(mode) },
-                    enabled = enabled,
-                    modifier = Modifier.weight(1f).height(34.dp),
-                    contentPadding = PaddingValues(horizontal = 2.dp, vertical = 0.dp),
-                    border = BorderStroke(1.dp, if (state.flightMode == mode) Cyan else Grid)
-                ) { Text(mode.name, color = if (state.flightMode == mode) Cyan else Muted, fontSize = 10.sp) }
+        if (compact) {
+            OutlinedButton(
+                onClick = { onSetMode(VehicleMode.AUTO) },
+                enabled = enabled,
+                modifier = Modifier.fillMaxWidth().padding(top = 6.dp).height(30.dp),
+                contentPadding = PaddingValues(vertical = 0.dp),
+                border = BorderStroke(1.dp, if (state.flightMode == VehicleMode.AUTO) Cyan else Grid)
+            ) { Text("AUTO", color = if (state.flightMode == VehicleMode.AUTO) Cyan else Muted, fontSize = 10.sp) }
+        } else {
+            Row(Modifier.fillMaxWidth().padding(top = 7.dp), horizontalArrangement = Arrangement.spacedBy(6.dp)) {
+                listOf(VehicleMode.HOLD, VehicleMode.GUIDED, VehicleMode.AUTO, VehicleMode.RTL).forEach { mode ->
+                    OutlinedButton(
+                        onClick = { onSetMode(mode) },
+                        enabled = enabled,
+                        modifier = Modifier.weight(1f).height(34.dp),
+                        contentPadding = PaddingValues(horizontal = 2.dp, vertical = 0.dp),
+                        border = BorderStroke(1.dp, if (state.flightMode == mode) Cyan else Grid)
+                    ) { Text(mode.name, color = if (state.flightMode == mode) Cyan else Muted, fontSize = 10.sp) }
+                }
             }
         }
     }

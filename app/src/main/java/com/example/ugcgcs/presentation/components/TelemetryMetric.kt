@@ -19,9 +19,9 @@ fun TelemetryMetric(label: String, value: String, modifier: Modifier = Modifier)
     Column(
         modifier = modifier
             .background(Color(0xFF101A22))
-            .padding(horizontal = 12.dp, vertical = 10.dp)
+            .padding(horizontal = 12.dp, vertical = 6.dp)
     ) {
         Text(label, color = Color(0xFF91A5B4), fontSize = 10.sp, fontWeight = FontWeight.Bold)
-        Text(value, color = Color(0xFFE7F0F5), fontSize = 15.sp, fontFamily = FontFamily.Monospace)
+        Text(value, color = Color(0xFFE7F0F5), fontSize = 14.sp, fontFamily = FontFamily.Monospace)
     }
 }
